@@ -99,6 +99,16 @@ If you find Fast R-CNN useful in your research, please consider citing:
 
     This will populate the `$FRCN_ROOT/data` folder with `fast_rcnn_models`. See `data/README.md` for details.
 
+6. Build LPO
+    ```Shell
+    cd $FRCN_ROOT
+    cd lib/proposal/lpo
+    mkdir build
+    cd build
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_PYTHON=2
+    make -j8
+   ```
+
 ### Demo
 
 *After successfully completing [basic installation](#installation-sufficient-for-the-demo)*, you'll be ready to run the demo.
@@ -114,7 +124,7 @@ The demo performs detection using a VGG16 network trained for detection on PASCA
 ```Shell
 ./tools/demo.py --cpu --img data/demo/car.jpg --prop lpo
 ```
-The demo will use proposal method, lpo, and predict img.jpg in CPU mode
+The demo will use the proposal method, LPO, and predict car.jpg in CPU mode
 
 **Note:** If the demo crashes Caffe because your GPU doesn't have enough memory, try running the demo with a small network, e.g., `./tools/demo.py --net caffenet` or with `--net vgg_cnn_m_1024`. Or run in CPU mode `./tools/demo.py --cpu`. Type `./tools/demo.py -h` for usage.
 
