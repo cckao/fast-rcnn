@@ -2,3 +2,7 @@
 	path = caffe-fast-rcnn
 	url = https://github.com/rbgirshick/caffe-fast-rcnn.git
 	branch = fast-rcnn
+[submodule "lib/proposal/lpo"]
+	path = lib/proposal/lpo
+	url = https://github.com/cckao/lpo.git
+	branch = kao01
