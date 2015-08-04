@@ -87,11 +87,16 @@ def vis_detections(im, class_name, dets, thresh=0.5):
     plt.tight_layout()
     plt.draw()
 
-def demo(net, image_name, classes, prop=None, prop_opts=[]):
+def demo(net, image_name, classes, prop=None, prop_opts=[], im_file=None):
     """Detect object classes in an image using pre-computed object proposals."""
 
     # Load the demo image
-    im_file = os.path.join(cfg.ROOT_DIR, 'data', 'demo', image_name + '.jpg')
+    # By default, lead the image under data/demo/[image_name]
+    if image_name:
+        im_file = os.path.join(cfg.ROOT_DIR, 'data', 'demo', image_name + '.jpg')
+
+    if im_file is None:
+        raise 'Cannot find the image to detect'
     im = cv2.imread(im_file)
 
     # Load pre-computed Selected Search object proposals
@@ -137,6 +142,7 @@ def parse_args():
                         choices=NETS.keys(), default='vgg16')
     parser.add_argument('--prop', dest='demo_prop', help='Method to generate proposals',
                         choices=PROP_GEN.keys(), default='pre')
+    parser.add_argument('--img', dest='img_path', help='Specify image path', default=None)
 
     args = parser.parse_args()
 
@@ -165,12 +171,19 @@ if __name__ == '__main__':
 
     prop, prop_opts = get_prop_gen(args.demo_prop)
 
-    print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    print 'Demo for data/demo/000004.jpg'
-    demo(net, '000004', ('car',), prop, prop_opts)
+    specified_img_path = args.img_path
 
-    print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    print 'Demo for data/demo/001551.jpg'
-    demo(net, '001551', ('sofa', 'tvmonitor'), prop, prop_opts)
+    #  Detect the specified image
+    if specified_img_path and prop:
+        demo(net, None, ('car',), prop, prop_opts, im_file=specified_img_path)
+    else:
+        demo(net, '000004', ('car',), prop, prop_opts)
+        print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+        print 'Demo for data/demo/000004.jpg'
+        demo(net, '000004', ('car',), prop, prop_opts)
+
+        print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+        print 'Demo for data/demo/001551.jpg'
+        demo(net, '001551', ('sofa', 'tvmonitor'), prop, prop_opts)
 
     plt.show()
