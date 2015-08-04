@@ -23,6 +23,7 @@ import numpy as np
 import scipy.io as sio
 import caffe, os, sys, cv2
 import argparse
+import LpoProposal
 
 CLASSES = ('__background__',
            'aeroplane', 'bicycle', 'bird', 'boat',
@@ -38,6 +39,21 @@ NETS = {'vgg16': ('VGG16',
         'caffenet': ('CaffeNet',
                      'caffenet_fast_rcnn_iter_40000.caffemodel')}
 
+PROP_GEN = {'pre': {},
+            'lpo': {'model_path': '../lib/proposal/lpo/models/lpo_VOC_0.03.dat',
+                    'b_det': 'mssf',
+                    'appr_n': 1000}}
+
+
+def get_prop_gen(name):
+    args = PROP_GEN[name]
+    if name == 'lpo':
+        model_path = os.path.join(os.path.dirname(__file__),
+                                  args['model_path'])
+        prop = LpoProposal.LpoGenerator(model_path, args['b_det'])
+        return prop, [args['appr_n']]
+    else:
+        return None, []
 
 def vis_detections(im, class_name, dets, thresh=0.5):
     """Draw detected bounding boxes."""
@@ -71,17 +87,20 @@ def vis_detections(im, class_name, dets, thresh=0.5):
     plt.tight_layout()
     plt.draw()
 
-def demo(net, image_name, classes):
+def demo(net, image_name, classes, prop=None, prop_opts=[]):
     """Detect object classes in an image using pre-computed object proposals."""
-
-    # Load pre-computed Selected Search object proposals
-    box_file = os.path.join(cfg.ROOT_DIR, 'data', 'demo',
-                            image_name + '_boxes.mat')
-    obj_proposals = sio.loadmat(box_file)['boxes']
 
     # Load the demo image
     im_file = os.path.join(cfg.ROOT_DIR, 'data', 'demo', image_name + '.jpg')
     im = cv2.imread(im_file)
+
+    # Load pre-computed Selected Search object proposals
+    if prop is None:
+        box_file = os.path.join(cfg.ROOT_DIR, 'data', 'demo',
+                                image_name + '_boxes.mat')
+        obj_proposals = sio.loadmat(box_file)['boxes']
+    else:
+        obj_proposals = prop.propose(im, *prop_opts)
 
     # Detect all object classes and regress object bounds
     timer = Timer()
@@ -116,6 +135,8 @@ def parse_args():
                         action='store_true')
     parser.add_argument('--net', dest='demo_net', help='Network to use [vgg16]',
                         choices=NETS.keys(), default='vgg16')
+    parser.add_argument('--prop', dest='demo_prop', help='Method to generate proposals',
+                        choices=PROP_GEN.keys(), default='pre')
 
     args = parser.parse_args()
 
@@ -142,12 +163,14 @@ if __name__ == '__main__':
 
     print '\n\nLoaded network {:s}'.format(caffemodel)
 
+    prop, prop_opts = get_prop_gen(args.demo_prop)
+
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
     print 'Demo for data/demo/000004.jpg'
-    demo(net, '000004', ('car',))
+    demo(net, '000004', ('car',), prop, prop_opts)
 
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
     print 'Demo for data/demo/001551.jpg'
-    demo(net, '001551', ('sofa', 'tvmonitor'))
+    demo(net, '001551', ('sofa', 'tvmonitor'), prop, prop_opts)
 
     plt.show()
