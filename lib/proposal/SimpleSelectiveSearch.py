@@ -1,11 +1,9 @@
 import sys
 import os
 dlibPath= os.path.join(os.path.dirname(__file__), 'dlib')
-print dlibPath
 sys.path.append(dlibPath)
 import dlib
 import cv2
-import time
 import numpy
 
 class SimpleSelectiveSearch(object):
@@ -14,11 +12,8 @@ class SimpleSelectiveSearch(object):
 
     def propose(self, img, *options):
         rects = []
-        startTime = time.time()
         tMinSize = options[0]
         dlib.find_candidate_object_locations(img, rects, min_size=tMinSize)
-        endTime = time.time()
-        print 'SimpleSelectiveSearch takes ' + str((endTime - startTime) * 1000) + 'ms'
         return self.list2NdArray(rects)
 
     @staticmethod

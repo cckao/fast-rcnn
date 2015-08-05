@@ -104,20 +104,24 @@ def demo(net, image_name, classes, prop=None, prop_opts=[], im_file=None):
     im = cv2.imread(im_file)
 
     # Load pre-computed Selected Search object proposals
+    propTimer = Timer()
+    propTimer.tic()
     if prop is None:
         box_file = os.path.join(cfg.ROOT_DIR, 'data', 'demo',
                                 image_name + '_boxes.mat')
         obj_proposals = sio.loadmat(box_file)['boxes']
     else:
         obj_proposals = prop.propose(im, *prop_opts)
-
-    print 'Proposal method : ' + str(type(prop))
+    propTimer.toc()
     # Detect all object classes and regress object bounds
     timer = Timer()
     timer.tic()
     scores, boxes = im_detect(net, im, obj_proposals)
     timer.toc()
-    print ('Detection took {:.3f}s for '
+    print '\tProposal method : ' + str(type(prop))
+    print ('\tFinding proposals took {:.3f}s for '
+            '{:d} object proposals').format(propTimer.total_time, obj_proposals.shape[0])
+    print ('\tObjects Detection took {:.3f}s for '
            '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
     # Visualize detections for each class
