@@ -24,6 +24,7 @@ import scipy.io as sio
 import caffe, os, sys, cv2
 import argparse
 import LpoProposal
+import SimpleSelectiveSearch
 
 CLASSES = ('__background__',
            'aeroplane', 'bicycle', 'bird', 'boat',
@@ -42,7 +43,8 @@ NETS = {'vgg16': ('VGG16',
 PROP_GEN = {'pre': {},
             'lpo': {'model_path': '../lib/proposal/lpo/models/lpo_VOC_0.03.dat',
                     'b_det': 'mssf',
-                    'appr_n': 1000}}
+                    'appr_n': 1000},
+            'sss': {'min_size': 300}}
 
 
 def get_prop_gen(name):
@@ -52,6 +54,8 @@ def get_prop_gen(name):
                                   args['model_path'])
         prop = LpoProposal.LpoGenerator(model_path, args['b_det'])
         return prop, [args['appr_n']]
+    elif name == 'sss':
+        return SimpleSelectiveSearch.SimpleSelectiveSearch(), [args['min_size']]
     else:
         return None, []
 
@@ -107,6 +111,7 @@ def demo(net, image_name, classes, prop=None, prop_opts=[], im_file=None):
     else:
         obj_proposals = prop.propose(im, *prop_opts)
 
+    print 'Proposal method : ' + str(type(prop))
     # Detect all object classes and regress object bounds
     timer = Timer()
     timer.tic()
@@ -177,7 +182,6 @@ if __name__ == '__main__':
     if specified_img_path and prop:
         demo(net, None, ('car',), prop, prop_opts, im_file=specified_img_path)
     else:
-        demo(net, '000004', ('car',), prop, prop_opts)
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
         print 'Demo for data/demo/000004.jpg'
         demo(net, '000004', ('car',), prop, prop_opts)
