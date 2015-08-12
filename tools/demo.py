@@ -38,8 +38,9 @@ NETS = {'vgg16': ('VGG16',
         'vgg_cnn_m_1024': ('VGG_CNN_M_1024',
                            'vgg_cnn_m_1024_fast_rcnn_iter_40000.caffemodel'),
         'caffenet': ('CaffeNet',
-                     'caffenet_fast_rcnn_iter_40000.caffemodel')}
-
+                     'caffenet_fast_rcnn_iter_40000.caffemodel'),
+        'finetune_caffenet': ('finetune_CaffeNet',
+                     'finetune_caffenet.caffemodel')}
 PROP_GEN = {'pre': {},
             'lpo': {'model_path': '../lib/proposal/lpo/models/lpo_VOC_0.03.dat',
                     'b_det': 'mssf',
@@ -159,6 +160,13 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
+
+    # Load classes from file if it exist
+    synsetFile = os.path.join(cfg.ROOT_DIR, 'models', NETS[args.demo_net][0], 'synset_words.txt')
+    with open(synsetFile) as file:
+        CLASSES = []
+        for line in file:
+            CLASSES.append(line.rstrip('\n'))
 
     prototxt = os.path.join(cfg.ROOT_DIR, 'models', NETS[args.demo_net][0],
                             'test.prototxt')
