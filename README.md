@@ -273,6 +273,6 @@ Put your caffe model to data/fast_rcnn_models/finetune_caffenet.caffemodel or do
 
 Use data/fast_rcnn_models/finetune_caffenet.caffemodel and LPO proposal methods to detect data/demo/car.jpg
 
-'$ python ./tools/demo.py --cpu --net finetune_caffenet --prop lpo --img data/demo/car.jpg'
+`$ python ./tools/demo.py --cpu --net finetune_caffenet --prop lpo --img data/demo/car.jpg`
 
 
