@@ -28,27 +28,41 @@ def gen_time_str(id, prop_time, det_time, nms_time):
     return id + ' ' + str(prop_time) + ' ' + str(det_time) + ' ' +\
         str(nms_time) + ' ' +  str(prop_time + det_time + nms_time) + '\n'
 
+def get_labels(num_detector_class, input_labels):
+    if input_labels is None or len(input_labels) == 0:
+        # Suppose label 0 is background, start from 1
+        return range(1, num_detector_class)
+    else:
+        # Check if all user input labels are valid
+        for i in input_labels:
+            if i >= num_detector_class:
+                # Invalid labels
+                print('Invalid input labels. Default values are used')
+                return range(1, num_detector_class)
+        return input_labels
+
 if '__main__' == __name__:
     parser = argparse.ArgumentParser(description='Save the detection results')
     parser.add_argument('img_dir', help='Specify image path')
     parser.add_argument('img_list', help='Image ID list')
-    parser.add_argument('--out', dest='out', help='Output file',
+    parser.add_argument('--out', dest='out', help='Output file [out.txt]',
                         default='out.txt', type=str)
-    parser.add_argument('--logtime', dest='logtime', help='Time performancei log',
+    parser.add_argument('--logtime', dest='logtime', help='Time performancei log [time.txt]',
                         default='time.txt', type=str)
-    parser.add_argument('--confthr', dest='conf_thr', help='Threshold of confidence',
+    parser.add_argument('--confthr', dest='conf_thr', help='Threshold of confidence [0.8]',
                         default=0.8, type=float)
     parser.add_argument('--nmsthr', dest='nms_thr', default=0.3, type=float,
-                        help='Threshold for nms()')
+                        help='Threshold for nms() [0.3]')
     parser.add_argument('--gpu', dest='gpu_id', help='GPU device id to use [0]',
                         default=0, type=int)
     parser.add_argument('--cpu', dest='cpu_mode',
                         help='Use CPU mode (overrides --gpu)',
                         action='store_true')
-    parser.add_argument('--net', dest='net', help='Network to use [vgg16]',
+    parser.add_argument('--net', dest='net', help='Network to use [caffenet]',
                         choices=NETS.keys(), default='caffenet')
-    parser.add_argument('--prop', dest='demo_prop', help='Method to generate proposals',
+    parser.add_argument('--prop', dest='demo_prop', help='Method to generate proposals [sss]',
                         choices=PROP_GEN.keys(), default='sss')
+    parser.add_argument('--cls', dest='cls', nargs='+', help='Target labels', type=int)
     args = parser.parse_args()
 
     # Check image directory
@@ -84,9 +98,9 @@ if '__main__' == __name__:
         dt.toc()
 
         # Run non-maximum suppression
-        # Suppose label 0 is background, start from 1
         nt = Timer()
-        for label in range(1, scores.shape[1]):
+        labels = get_labels(scores.shape[1], args.cls)
+        for label in labels:
             nt.tic()
             cls_boxes = boxes[:, 4*label:4*(label + 1)]
             cls_scores = scores[:, label]
